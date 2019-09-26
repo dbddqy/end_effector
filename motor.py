@@ -16,14 +16,12 @@ class Motor:
         else:
             arr = [3,2,1,0]
 
-        # ports = [6,13,19,26]
-
         for p in self.ports:
             GPIO.setup(p,GPIO.OUT)
 
         for x in range(step):
             for j in arr:
-                time.sleep(0.002)
+                time.sleep(0.004)
                 for i in range(4):
                     if i == j:
                         GPIO.output(self.ports[i],True)
