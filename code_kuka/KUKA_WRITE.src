@@ -1,0 +1,47 @@
+DEF KUKA_WRITE()
+
+;---Declarations---
+INT HANDLE, OFFSET
+REAL TIMEOUT
+DECL STATE_T SW_T, SR_T, SC_T
+DECL MODUS_T MR_T, MW_T
+DECL AXIS HOME
+DECL POS ROBOTPOSE
+DECL INT COMMAND
+;COMMAND = 1 = "MOVE"
+;COMMAND = 2 = "HOME"
+;COMMAND = 3 = "END"
+;COMMAND = 4 = "GETPOS"
+DECL CHAR MSG
+DECL REAL COMMENT
+DECL POS TARGET
+DECL BOOL ONLINE
+
+;---Initializations---
+$BASE = {FRAME: X 0, Y 0, Z 0, A 0, B 0, C 0} ;Set the base coordinate system
+TARGET = $NULLFRAME
+$TOOL = $NULLFRAME  ;[1] ;Set the tool coordinate system to flange
+HOME  = {AXIS: A1 0, A2 -90, A3 90, A4 0, A5 0, A6 0} ;Set home gesture
+BAS (#VEL_PTP, 20) ;Point-to-point movement velocity (m/s^2)
+HANDLE = 0
+COMMAND = 0
+ONLINE = TRUE
+
+;Initialize and open serial port
+MW_T=#SYNC
+MR_T=#ABS
+TIMEOUT=3.0
+OFFSET=0
+COPEN(:SER_3, HANDLE)
+IF (HANDLE==0) THEN
+    HALT
+ENDIF
+
+;---Main Section---
+;Print a message to confirm opening the channel, every 2 seconds
+LOOP
+    CWRITE(HANDLE, SW_T, MW_T, "%s", "Hello KUKA")
+    WAIT SEC 2
+ENDLOOP
+
+END

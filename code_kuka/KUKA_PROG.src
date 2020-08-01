@@ -1,0 +1,86 @@
+DEF KUKA_PROG()
+
+;---Declarations---
+INT HANDLE, OFFSET
+REAL TIMEOUT
+DECL STATE_T SW_T, SR_T, SC_T
+DECL MODUS_T MR_T, MW_T
+DECL AXIS HOME
+DECL POS ROBOTPOSE
+DECL INT COMMAND
+;COMMAND = 1 = "MOVE"
+;COMMAND = 2 = "HOME"
+;COMMAND = 3 = "END"
+;COMMAND = 4 = "GETPOS"
+DECL CHAR MSG
+DECL REAL COMMENT
+DECL POS TARGET
+DECL BOOL ONLINE
+
+;---Initializations---
+$BASE = {FRAME: X 0, Y 0, Z 0, A 0, B 0, C 0} ;Set the base coordinate system
+TARGET = $NULLFRAME
+$TOOL = $NULLFRAME  ;[1] ;Set the tool coordinate system to flange
+HOME  = {AXIS: A1 0, A2 -90, A3 90, A4 0, A5 0, A6 0} ;Set home gesture
+BAS (#VEL_PTP, 20) ;Point-to-point movement velocity (m/s^2)
+HANDLE = 0
+COMMAND = 0
+ONLINE = TRUE
+
+;Initialize and open serial port
+MW_T=#SYNC
+MR_T=#ABS
+TIMEOUT=3.0
+OFFSET=0
+COPEN(:SER_3, HANDLE)
+IF (HANDLE==0) THEN
+    HALT 
+ENDIF
+
+;--- Main section ---
+PTP HOME
+
+;Print a message to confirm opening the channel
+CWRITE(HANDLE, SW_T, MW_T, "%s", "Hello KUKA")
+CREAD (HANDLE, SR_T, MR_T, TIMEOUT, OFFSET, "%s", MSG)
+IF  (SR_T.RET1<>#DATA_OK) THEN
+  PRINTMSG("Failure!") ;Confirm print command
+  HALT
+ELSE
+  PRINTMSG(MSG) ;Confirm print command
+ENDIF
+
+REPEAT ;Keep running the program until it is turned off
+    ;1. get instructions from serial of where it is going to move to 
+    CREAD (HANDLE, SR_T, MR_T, TIMEOUT, OFFSET, "%i %f %f %f %f %f %f", COMMAND, TARGET.X, TARGET.Y, TARGET.Z, TARGET.A, TARGET.B, TARGET.C)
+    IF  (SR_T.RET1<>#DATA_OK) THEN
+        HALT 
+    ENDIF
+    ;2. confirm and execute the type of comment with switch 
+    SWITCH COMMAND
+        CASE 1 ;1.MOVE
+            CWRITE(HANDLE, SW_T, MW_T, "%s", "KUKA Moving")
+            ;move robot pose linearly to the recieved locations
+            LIN TARGET
+            ;send signal as movement finishes
+            CWRITE(HANDLE, SW_T, MW_T, "%s", "Finish")
+        CASE 2 ;2.HOME
+            CWRITE(HANDLE, SW_T, MW_T, "%s", "KUKA Returning Home")
+            LIN HOME
+            CWRITE(HANDLE, SW_T, MW_T, "%s", "Finish")
+        CASE 3 ;3.END
+            CWRITE(HANDLE, SW_T, MW_T, "%s", "KUKA Terminate Connection")
+            ONLINE = FALSE
+            ;close serial terminal
+            CCLOSE (HANDLE, SC_T)
+            IF (SC_T.RET1<>#CMD_OK) THEN
+                HALT
+            ENDIF
+        CASE 4 ;4.GETPOS
+            CWRITE(HANDLE, SW_T, MW_T, "%s %f %f %f %f %f %f", "KUKA Current Location: ", $POS_ACT.X, $POS_ACT.Y, $POS_ACT.Z, $POS_ACT.A, $POS_ACT.B, $POS_ACT.C)
+        DEFAULT
+            CWRITE(HANDLE, SW_T, MW_T, "%s", "ERROR: Incorrect Command Recieved")
+    ENDSWITCH
+UNTIL (ONLINE == FALSE)
+
+END
