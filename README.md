@@ -37,6 +37,6 @@ Communication with the KUKA robot:
 
 Full video:
 
-[![](pics/Robotic Sensorship 01.png)](https://vimeo.com/443476046 "Robotic Sensorship 01 - Click to Watch!")
+[![](https://github.com/dbddqy/end_effector/blob/master/pics/Robotic%20Sensorship%2001.png?raw=true)](https://vimeo.com/443476046 "Robotic Sensorship 01 - Click to Watch!")
 
-[![](pics/Robotic Sensorship 02.png)](https://vimeo.com/443476348 "Robotic Sensorship 02 - Click to Watch!")
+[![](https://github.com/dbddqy/end_effector/blob/master/pics/Robotic%20Sensorship%2002.png?raw=true)](https://vimeo.com/443476348 "Robotic Sensorship 02 - Click to Watch!")
